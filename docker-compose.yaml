@@ -1,0 +1,15 @@
+services:
+  warsaw:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: warsaw-container
+    container_name: warsaw
+    privileged: true
+    volumes:
+      - /dev:/dev
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    environment:
+      - DISPLAY=${DISPLAY}
+    network_mode: host
+    command: ["tail", "-f", "/dev/null"]
