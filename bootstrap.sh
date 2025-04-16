@@ -21,9 +21,9 @@ else
     fi
 fi
 
-# Executar o Warsaw
-echo "Executando Warsaw..."
-/usr/local/bin/warsaw/core &
+# # Executar o Warsaw
+# echo "Executando Warsaw..."
+# /usr/local/bin/warsaw/core &
 
 # Manter o container rodando
 tail -f /dev/null

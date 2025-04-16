@@ -26,8 +26,6 @@ RUN apt-get update && apt-get install -y \
 RUN locale-gen en_US.UTF-8
 ENV LC_ALL=en_US.UTF-8
 
-WORKDIR /home/ubuntu
-
 # Baixar o warsaw_setup64.run
 RUN wget https://cloud.gastecnologia.com.br/bb/downloads/ws/debian/warsaw_setup64.run
 
@@ -38,14 +36,20 @@ RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.d
 
 RUN dpkg -i ./google-chrome-stable_current_amd64.deb
 
-COPY ./bootstrap.sh /home/ubuntu/bootstrap.sh
-
 RUN usermod -aG sudo ubuntu
 
 # Opcional: Permitir sudo sem senha para o usuário "ubuntu"
 RUN echo "ubuntu ALL=(ALL) NOPASSWD:ALL" >>/etc/sudoers
 
-# Definir o usuário padrão como "ubuntu"
-USER ubuntu
+# Copiar o wrapper.sh
+COPY wrapper.sh /wrapper.sh
+RUN chmod +x /wrapper.sh
 
-ENTRYPOINT [ "bash", "bootstrap.sh" ]
+# Definir o usuário padrão como "ubuntu"
+#USER ubuntu
+
+WORKDIR /home/ubuntu
+
+COPY ./bootstrap.sh /home/ubuntu/bootstrap.sh
+
+ENTRYPOINT [ "bash", "/wrapper.sh" ]
