@@ -20,7 +20,10 @@ RUN apt-get update && apt-get install -y \
     xdotool \
     libasound2t64 libnspr4 libnss3 xdg-utils \
     fonts-liberation libatk-bridge2.0-0 libatspi2.0-0 \
-    zenity && rm -rf /var/lib/apt/lists/*
+    zenity \
+    systemd \
+    systemd-sysv \
+    && rm -rf /var/lib/apt/lists/*
 
 # Configurar locale para evitar problemas com strings
 RUN locale-gen en_US.UTF-8
@@ -40,6 +43,8 @@ RUN usermod -aG sudo ubuntu
 
 # Opcional: Permitir sudo sem senha para o usuário "ubuntu"
 RUN echo "ubuntu ALL=(ALL) NOPASSWD:ALL" >>/etc/sudoers
+
+RUN systemctl disable systemd-resolved systemd-timesyncd
 
 # Copiar o wrapper.sh
 COPY wrapper.sh /wrapper.sh
