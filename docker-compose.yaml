@@ -9,7 +9,9 @@ services:
     volumes:
       - /dev:/dev
       - /tmp/.X11-unix:/tmp/.X11-unix
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro  # Necessário para o systemd
     environment:
       - DISPLAY=${DISPLAY}
     network_mode: host
-    command: ["tail", "-f", "/dev/null"]
+    command: ["/sbin/init"]  # Inicia o systemd como PID 1
+    #command: ["tail", "-f", "/dev/null"]
