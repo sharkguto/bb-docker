@@ -29,11 +29,7 @@ RUN apt-get update && apt-get install -y \
 RUN locale-gen en_US.UTF-8
 ENV LC_ALL=en_US.UTF-8
 
-# Baixar o warsaw_setup64.run
-RUN wget https://cloud.gastecnologia.com.br/bb/downloads/ws/debian/warsaw_setup64.run
 
-# Tornar o arquivo executável
-RUN chmod +x warsaw_setup64.run
 
 RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 
@@ -51,9 +47,15 @@ COPY wrapper.sh /wrapper.sh
 RUN chmod +x /wrapper.sh
 
 # Definir o usuário padrão como "ubuntu"
-#USER ubuntu
+USER ubuntu
 
 WORKDIR /home/ubuntu
+
+# Baixar o warsaw_setup64.run
+RUN wget https://cloud.gastecnologia.com.br/bb/downloads/ws/debian/warsaw_setup64.run
+
+# Tornar o arquivo executável
+RUN chmod +x warsaw_setup64.run
 
 COPY ./bootstrap.sh /home/ubuntu/bootstrap.sh
 
