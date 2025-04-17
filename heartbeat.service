@@ -1,0 +1,12 @@
+[Unit]
+Description=Heartbeat – imprime "estou vivo" a cada segundo
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+ExecStart=/usr/local/bin/heartbeat.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
