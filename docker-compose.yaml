@@ -1,41 +1,24 @@
 services:
-    warsaw:
+    warsaw-container:
         build:
             context: .
             dockerfile: Dockerfile
-        image: warsaw-container
-        container_name: warsaw
+        image: warsaw-container:latest
+        container_name: warsaw-container
         privileged: true
         volumes:
-            - /dev:/dev
+            - /sys/fs/cgroup:/sys/fs/cgroup:rw
             - /tmp/.X11-unix:/tmp/.X11-unix
-            - /sys/fs/cgroup:/sys/fs/cgroup:ro # Necessário para systemd
         environment:
             - DISPLAY=${DISPLAY}
-        network_mode: host
-        tmpfs:
-            - /run
-            - /run/lock
-            - /tmp
-        cap_add:
-            - SYS_ADMIN # Necessário para systemd
-            - NET_ADMIN
-        stop_grace_period: 30s # Dar tempo para o systemd encerrar
+            - LC_ALL=en_US.UTF-8
+        cgroup: host
+        tty: true
+        stdin_open: true
+        networks:
+            - warsaw-network
+        restart: unless-stopped
 
-# services:
-#   warsaw:
-#     build:
-#       context: .
-#       dockerfile: Dockerfile
-#     image: warsaw-container
-#     container_name: warsaw
-#     privileged: true
-#     volumes:
-#       - /dev:/dev
-#       - /tmp/.X11-unix:/tmp/.X11-unix
-#       - /sys/fs/cgroup:/sys/fs/cgroup:ro  # Necessário para o systemd
-#     environment:
-#       - DISPLAY=${DISPLAY}
-#     network_mode: host
-#     command: ["/sbin/init"]  # Inicia o systemd como PID 1
-#     #command: ["tail", "-f", "/dev/null"]
+networks:
+    warsaw-network:
+        driver: bridge

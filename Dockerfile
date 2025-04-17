@@ -1,7 +1,7 @@
 # Usar Ubuntu 24.04 como base
 FROM ubuntu:24.04
 
-# Atualizar repositórios e instalar dependências básicas
+# Atualizar repositórios e instalar dependências
 RUN apt-get update && apt-get install -y \
     wget \
     ca-certificates \
@@ -18,45 +18,45 @@ RUN apt-get update && apt-get install -y \
     locales \
     sudo \
     xdotool \
-    libasound2t64 libnspr4 libnss3 xdg-utils \
-    fonts-liberation libatk-bridge2.0-0 libatspi2.0-0 \
+    libasound2t64 \
+    libnspr4 \
+    libnss3 \
+    xdg-utils \
+    fonts-liberation \
+    libatk-bridge2.0-0 \
+    libatspi2.0-0 \
     zenity \
     systemd \
     systemd-sysv \
     && rm -rf /var/lib/apt/lists/*
 
-# Configurar locale para evitar problemas com strings
+# Configurar locale
 RUN locale-gen en_US.UTF-8
 ENV LC_ALL=en_US.UTF-8
 
+# Instalar o Google Chrome
+RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
+    && dpkg -i google-chrome-stable_current_amd64.deb || apt-get install -f -y \
+    && rm google-chrome-stable_current_amd64.deb
 
+# Criar usuário "ubuntu" com UID 1000
+RUN usermod -aG sudo ubuntu \
+    && echo "ubuntu ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-
-RUN dpkg -i ./google-chrome-stable_current_amd64.deb
-
-RUN usermod -aG sudo ubuntu
-
-# Opcional: Permitir sudo sem senha para o usuário "ubuntu"
-RUN echo "ubuntu ALL=(ALL) NOPASSWD:ALL" >>/etc/sudoers
-
+# Desativar serviços desnecessários (opcional)
 RUN systemctl disable systemd-resolved systemd-timesyncd
 
-# Copiar o wrapper.sh
-COPY wrapper.sh /wrapper.sh
-RUN chmod +x /wrapper.sh
-
-# Definir o usuário padrão como "ubuntu"
-USER ubuntu
-
+# Baixar e configurar o instalador do Warsaw
 WORKDIR /home/ubuntu
+RUN wget https://cloud.gastecnologia.com.br/bb/downloads/ws/debian/warsaw_setup64.run \
+    && chmod +x warsaw_setup64.run \
+    && chown ubuntu:ubuntu warsaw_setup64.run
 
-# Baixar o warsaw_setup64.run
-RUN wget https://cloud.gastecnologia.com.br/bb/downloads/ws/debian/warsaw_setup64.run
+# Copiar scripts
+COPY wrapper.sh /wrapper.sh
+COPY bootstrap.sh /home/ubuntu/bootstrap.sh
+RUN chmod +x /wrapper.sh /home/ubuntu/bootstrap.sh \
+    && chown ubuntu:ubuntu /home/ubuntu/bootstrap.sh
 
-# Tornar o arquivo executável
-RUN chmod +x warsaw_setup64.run
-
-COPY ./bootstrap.sh /home/ubuntu/bootstrap.sh
-
-ENTRYPOINT [ "bash", "/wrapper.sh" ]
+# Configurar o systemd como entrypoint
+ENTRYPOINT ["/sbin/init"]
