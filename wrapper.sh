@@ -27,6 +27,7 @@ if whereis warsaw | grep -q '/'; then
     echo "Warsaw já está instalado em: $(whereis warsaw)"
 else
     echo "Warsaw não encontrado. Iniciando a instalação..."
+    cd /home/ubuntu
     sudo -u ubuntu ./warsaw_setup64.run
     if [ -d "warsaw_setup" ]; then
         cd warsaw_setup
@@ -41,7 +42,7 @@ fi
 # Criar um serviço systemd para o Warsaw (se necessário)
 if ! systemctl is-enabled warsaw >/dev/null 2>&1; then
     echo "Criando serviço systemd para o Warsaw..."
-    sudo bash -c 'cat <<EOF >/etc/systemd/system/warsaw.service
+    cat <<EOF >/etc/systemd/system/warsaw.service
 [Unit]
 Description=Warsaw Core Service
 After=network.target
@@ -53,13 +54,10 @@ User=ubuntu
 
 [Install]
 WantedBy=multi-user.target
-EOF'
-    sudo systemctl enable warsaw
-    sudo systemctl start warsaw
+EOF
+    systemctl enable warsaw
+    systemctl start warsaw
 fi
 
 # Verificar o status do serviço Warsaw
-sudo systemctl status warsaw
-
-# Manter o contêiner rodando (opcional, já que o systemd mantém o contêiner ativo)
-# tail -f /dev/null
+systemctl status warsaw
