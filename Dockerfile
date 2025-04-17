@@ -58,5 +58,20 @@ COPY bootstrap.sh /home/ubuntu/bootstrap.sh
 RUN chmod +x /wrapper.sh /home/ubuntu/bootstrap.sh \
     && chown ubuntu:ubuntu /home/ubuntu/bootstrap.sh
 
+
+# Criar serviço systemd para executar o wrapper.sh
+RUN echo '[Unit]\n\
+Description=Execute wrapper.sh\n\
+After=network.target\n\
+\n\
+[Service]\n\
+Type=oneshot\n\
+ExecStart=/wrapper.sh\n\
+RemainAfterExit=yes\n\
+\n\
+[Install]\n\
+WantedBy=multi-user.target' > /etc/systemd/system/wrapper.service \
+    && systemctl enable wrapper.service
+
 # Configurar o systemd como entrypoint
 ENTRYPOINT ["/sbin/init"]

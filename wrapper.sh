@@ -18,6 +18,12 @@ if ! systemctl is-system-running >/dev/null 2>&1; then
     exit 1
 fi
 
+# Verificar se o DISPLAY está configurado
+if [ -z "$DISPLAY" ]; then
+    echo "Erro: Variável DISPLAY não está definida."
+    exit 1
+fi
+
 # Executar o bootstrap.sh como usuário "ubuntu"
 echo "Executando bootstrap.sh..."
 sudo -u ubuntu bash /home/ubuntu/bootstrap.sh

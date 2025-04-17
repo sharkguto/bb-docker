@@ -15,6 +15,7 @@ services:
         environment:
             - DISPLAY=${DISPLAY}
             - LC_ALL=en_US.UTF-8
+        ipc: host
         cgroup: host
         tty: true
         stdin_open: true
