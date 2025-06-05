@@ -1,92 +1,38 @@
-# Usar Ubuntu 24.04 como base
 FROM ubuntu:24.04
 
-# Atualizar repositórios e instalar dependências
-RUN apt-get update && apt-get install -y \
-    wget \
-    ca-certificates \
-    libcurl4 \
-    gnupg \
-    libx11-6 \
-    libxext6 \
-    libxrender1 \
-    libxcursor1 \
-    libxft2 \
-    libfontconfig1 \
-    libfreetype6 \
-    libgtk2.0-0 \
-    locales \
-    sudo \
-    xdotool \
-    libasound2t64 \
-    libnspr4 \
-    libnss3 \
-    xdg-utils \
-    fonts-liberation \
-    libatk-bridge2.0-0 \
-    libatspi2.0-0 \
-    zenity \
-    systemd \
-    systemd-sysv \
-    dbus \
-    dbus-x11 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Configurar locale
-RUN locale-gen en_US.UTF-8
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
 ENV LC_ALL=en_US.UTF-8
 
-# Instalar o Google Chrome
-RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
-    && dpkg -i google-chrome-stable_current_amd64.deb || apt-get install -f -y \
-    && rm google-chrome-stable_current_amd64.deb
+RUN apt-get update && \
+    apt-get install -y \
+    systemd \
+    locales \
+    sudo \
+    wget \
+    gnupg2 \
+    libx11-xcb1 libxcb-dri3-0 libdrm2 libgtk-3-0 \
+    libx11-6 libxcomposite1 libxcursor1 libxdamage1 libxi6 libxtst6 libnss3 \
+    libatk1.0-0 libatk-bridge2.0-0 libcups2 libxrandr2 libgbm1 \
+    libpango-1.0-0 libcairo2 libasound2t64 libxss1 \
+    libappindicator3-1 fonts-liberation xdg-utils curl && \
+    locale-gen en_US.UTF-8 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Criar usuário "ubuntu" com UID 1000
-RUN usermod -aG sudo ubuntu \
-    && echo "ubuntu ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+# Adiciona repositório do Google Chrome
+RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-linux.gpg && \
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-linux.gpg] http://dl.google.com/linux/chrome/deb/ stable main" \
+    > /etc/apt/sources.list.d/google-chrome.list && \
+    apt-get update && \
+    apt-get install -y google-chrome-stable && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Desativar serviços desnecessários
-RUN systemctl disable systemd-resolved systemd-timesyncd
+# Cria usuário normal
+RUN useradd -ms /bin/bash user && usermod -aG sudo user
 
-# Baixar e configurar o instalador do Warsaw
-WORKDIR /home/ubuntu
-RUN wget https://cloud.gastecnologia.com.br/bb/downloads/ws/debian/warsaw_setup64.run \
-    && chmod +x warsaw_setup64.run \
-    && chown ubuntu:ubuntu warsaw_setup64.run
+USER user
+WORKDIR /home/user
 
-# # Executar o instalador do Warsaw
-# RUN ./warsaw_setup64.run --install \
-#     && rm warsaw_setup64.run
-
-# Copiar scripts
-COPY wrapper.sh /wrapper.sh
-COPY bootstrap.sh /home/ubuntu/bootstrap.sh
-RUN chmod +x /wrapper.sh /home/ubuntu/bootstrap.sh \
-    && chown ubuntu:ubuntu /home/ubuntu/bootstrap.sh
-
-# Copiar o serviço Warsaw
-#COPY warsaw.service /etc/systemd/system/warsaw.service
-#RUN systemctl enable warsaw.service
-
-# Criar serviço systemd para executar o wrapper.sh
-RUN echo '[Unit]\n\
-Description=Execute wrapper.sh\n\
-After=network.target\n\
-\n\
-[Service]\n\
-Type=oneshot\n\
-ExecStart=/wrapper.sh\n\
-RemainAfterExit=yes\n\
-User=ubuntu\n\
-\n\
-[Install]\n\
-WantedBy=multi-user.target' > /etc/systemd/system/wrapper.service \
-    && systemctl enable wrapper.service
-
-# Configurar o D-Bus
-RUN mkdir -p /run/dbus /run/user/1000 \
-    && dbus-uuidgen > /var/lib/dbus/machine-id \
-    && chown ubuntu:ubuntu /run/user/1000
-
-# Configurar o systemd como entrypoint
-ENTRYPOINT ["/sbin/init"]
+CMD ["google-chrome", "--no-sandbox"]

@@ -1,28 +1,16 @@
-services:
-    warsaw-container:
-        build:
-            context: .
-            dockerfile: Dockerfile
-        image: warsaw-container:latest
-        container_name: warsaw-container
-        privileged: true
-        cap_add:
-            - SYS_ADMIN
-            - NET_ADMIN
-        volumes:
-            - /sys/fs/cgroup:/sys/fs/cgroup:rw
-            - /tmp/.X11-unix:/tmp/.X11-unix
-        environment:
-            - DISPLAY=${DISPLAY}
-            - LC_ALL=en_US.UTF-8
-        ipc: host
-        cgroup: host
-        tty: true
-        stdin_open: true
-        networks:
-            - warsaw-network
-        restart: unless-stopped
 
-networks:
-    warsaw-network:
-        driver: bridge
+services:
+  chrome:
+    build: .
+    environment:
+      - DISPLAY=${DISPLAY}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    network_mode: host
+    user: "${UID}:${GID}"
+    tmpfs:
+      - /run
+      - /run/lock
+    cap_add:
+      - SYS_ADMIN
+    privileged: true
